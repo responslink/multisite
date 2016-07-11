@@ -1,0 +1,248 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\Entity\Node;
+use Drupal\file\Entity\File;
+use Drupal\Component\Utility\UrlHelper;
+
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\BadResponseException;
+
+
+function custom_qr_generator_node_view_alter(array &$build, EntityInterface $node, EntityViewDisplayInterface $display) {
+	if ($node->getType() == 'qr_node') {
+
+		// Hide "Custom URL" field
+		$build['field_custom_url'] = array(
+			'#type' => 'markup',
+			'#markup' => '',
+		);
+
+		// Hide "QR Image" field's title
+		$build['field_qr_img']['#title'] = '';
+	}
+}
+
+
+function custom_qr_generator_form_node_form_alter(&$form, FormStateInterface $form_state) {
+	$node = $form_state->getFormObject()->getEntity();
+
+	if ($node->getType() == 'qr_node') {
+		// Hide the "QR Image" field
+		$form['field_qr_img'] = array('#markup' => '');
+	}
+
+	$form['#validate'][] = 'custom_qr_generator_node_validate';
+}
+
+
+function custom_qr_generator_node_validate(&$form, FormStateInterface $form_state) {
+	$url = $form_state->getValue('field_custom_url');
+
+	if (UrlHelper::isValid($url[0]['value'], true) === false) {
+		$form_state->setErrorByName('field_custom_url', t('URL is incorrect.'));
+	}
+}
+
+
+function custom_qr_generator_node_insert($node) {
+	if ($node->getType() == 'qr_node') {
+
+		// Add node into stats table
+		db_insert('custom_qr_generator_stats')
+			->fields(array('qrnid' => $node->id()))->execute();
+
+		$custom_url = sprintf('%s/qr/node/%s'
+			, $GLOBALS['base_url']
+			, $node->id()
+		);
+
+		$img_dir = sprintf('public://%s', date("Y-m"));
+		$dest_uri = sprintf('%s/%s.png', $img_dir, sha1($custom_url));
+
+		file_prepare_directory($img_dir, FILE_CREATE_DIRECTORY);
+
+		// Create a new image
+		$data = _custom_qr_generator_qr_img_stream($custom_url);
+		$file = file_save_data($data, $dest_uri);
+
+		// Add logo to that image
+		if (isset($node->get('field_qr_logo')->target_id)) {
+			$tmp_file = $file;
+			$logo_file = File::load($node->get('field_qr_logo')->target_id);
+			$file = _custom_qr_generator_add_logo_2_qr($file, $logo_file);
+			$tmp_file->delete();
+			$logo_file->delete();
+		}
+
+		// Attach that new image with a node
+		$node->field_qr_img->setValue(array(
+			'alt' => $custom_url,
+			'display' => '1',
+			'target_id' => $file->id(),
+		));
+
+		$node->setNewRevision(FALSE);
+		$node->save();
+	}
+}
+
+
+function custom_qr_generator_page_attachments(array &$page) {
+	$page['#attached']['library'][] = 'custom_qr_generator/custom-qr-generator-style';
+	_custom_qr_generator_frontpage_redirect();
+}
+
+
+function custom_qr_generator_user_login($account) {
+	$response = new RedirectResponse($GLOBALS['base_url'] . '/admin/qr-admin');
+	$response->send();
+	return;
+}
+
+
+function custom_qr_generator_node_delete(EntityInterface $node) {
+	if ($node->getType() == 'qr_node') {
+		db_delete('custom_qr_generator_stats')
+			->condition('qrnid', $node->id())->execute();
+
+		// Remove QR image file
+		$qr_img = File::load($node->get('field_qr_img')->target_id);
+		if ($qr_img) $qr_img->delete();
+	}
+}
+
+
+function custom_qr_generator_cron() {
+	$client = new GuzzleHttp\Client();
+
+	$query = db_select('custom_qr_generator_stats', 'cqrs');
+	$query->join('node__field_custom_url', 'fcu', 'cqrs.qrnid = fcu.entity_id');
+	$query->fields('cqrs', array('url_status', 'qrnid'));
+	$query->fields('fcu', array('field_custom_url_value'));
+	$data = $query->execute()->fetchAll();
+
+	foreach ($data as $d) {
+		try {
+			$res = $client->request('GET', $d->field_custom_url_value);
+			$status = $res->getStatusCode();
+		} catch (BadResponseException $e) {
+			$status = $e->getResponse()->getStatusCode();
+		} catch (RequestException $e) {
+			$status = '?'; // Some other error
+		}
+
+		_custom_qr_generator_set_status($d->qrnid, $status);
+	}
+}
+
+
+/* Helper functions */
+
+function _custom_qr_generator_set_status($id, $status_code) {
+	$status = ($status_code == '200') ? 'OK' : 'FAILED';
+
+	db_update('custom_qr_generator_stats')
+		->condition('qrnid', $id)
+		->fields(array('url_status' => $status))
+		->execute();
+}
+
+
+function _custom_qr_generator_qr_img_stream($msg) {
+	require_once  dirname(__FILE__) . '/phpqrcode/qrlib.php';
+
+	$source_data = function($m) {
+		ob_start();
+		QRcode::png($m, false, QR_ECLEVEL_H, 5, 2);
+		$result = ob_get_contents();
+		ob_end_clean();
+
+		return $result;
+	};
+
+	ob_start();
+	header('Content-Type: image/png');
+
+	$source_img = imagecreatefromstring($source_data($msg));
+	$old_w = imagesx($source_img);
+	$old_h = imagesy($source_img);
+	$size = 200;
+	$dest_img = imagecreatetruecolor($size, $size);
+
+	imagecopyresampled($dest_img, $source_img, 0, 0, 0, 0, $size, $size, $old_w, $old_h);
+	imagepng($dest_img);
+	imagedestroy($dest_img);
+
+	$content = ob_get_contents();
+	ob_end_clean();
+
+	return $content;
+}
+
+
+function _custom_qr_generator_add_logo_2_qr($qr_img_obj, $qr_logo_obj) {
+
+	ob_start();
+	header('Content-type: image/png');
+
+	$QR = imagecreatefromstring(file_get_contents($qr_img_obj->getFileUri()));
+	$logo = imagecreatefromstring(file_get_contents($qr_logo_obj->getFileUri()));
+
+	$QR_width = imagesx($QR);
+	$QR_height = imagesy($QR);
+	$logo_width = imagesx($logo);
+	$logo_height = imagesy($logo);
+
+	// Scale logo to fit in the QR Code
+	if ($logo_width >= $logo_height) {
+		$logo_qr_width = $QR_width / 2.3;
+		$scale = $logo_width / $logo_qr_width;
+		$logo_qr_height = $logo_height / $scale;
+	} else {
+		$logo_qr_height = $QR_height / 2.3;
+		$scale = $logo_height / $logo_qr_height;
+		$logo_qr_width = $logo_width / $scale;
+	}
+
+	imagecopyresampled(
+		$QR, $logo,
+		(($QR_width / 2) - ($logo_qr_width / 2)),
+		(($QR_height / 2) - ($logo_qr_height / 2)),
+		0, 0,
+		$logo_qr_width, $logo_qr_height, $logo_width, $logo_height
+	);
+
+	imagepng($QR);
+	imagedestroy($QR);
+
+	$img_stream = ob_get_contents();
+	ob_end_clean();
+
+	$file = file_save_data($img_stream, $qr_img_obj->getFileUri());
+	return $file;
+}
+
+
+function _custom_qr_generator_frontpage_redirect() {
+	$current_user = \Drupal::currentUser();
+	$front_page_path = \Drupal::config('system.site')->get('page.front');
+
+	if ($current_user->id() != 0) {
+		if ($front_page_path == '/admin/qr-admin') return;
+
+		// Check whether default front page is opened (with no query strings)
+		$on_default_front_page = (\Drupal::url('<front>') == $_SERVER['REQUEST_URI']);
+
+		if ($on_default_front_page) {
+			$response = new RedirectResponse(\Drupal::url('custom_qr_generator.qr_admin'));
+			$response->send();
+		}
+	}
+}
+

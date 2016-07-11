@@ -1,0 +1,7 @@
+
+custom-qr-generator-style:
+  version: 1.x
+  css:
+    theme:
+      css/custom_qr_generator_style.css: {}
+

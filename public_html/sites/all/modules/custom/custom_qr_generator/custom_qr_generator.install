@@ -1,0 +1,42 @@
+<?php
+
+function custom_qr_generator_schema() {
+	$schema['custom_qr_generator_stats'] = array(
+		'description' => 'Statistics related to QR Nodes',
+		'fields' => array(
+			'qrnid' => array(
+				'description' => 'The id of a QR Node.',
+				'type' => 'int',
+				'unsigned' => true,
+				'not null' => true,
+			),
+			'url_redirections' => array(
+				'description' => 'The amount of URL redirections.',
+				'type' => 'int',
+				'unsigned' => true,
+				'not null' => true,
+				'default' => 0,
+			),
+			'url_status' => array(
+				'description' => 'The status of the URL.',
+				'type' => 'varchar',
+				'length' => 16,
+				'not null' => true,
+				'default' => 'unknown',
+			),
+		),
+		'unique keys' => array(
+			'qrnid' => array('qrnid'),
+		),
+	);
+
+	return $schema;
+}
+
+
+function custom_qr_generator_uninstall() {
+	\Drupal::configFactory()->getEditable('field.storage.node.field_custom_url')->delete();
+	\Drupal::configFactory()->getEditable('field.storage.node.field_qr_img')->delete();
+	\Drupal::configFactory()->getEditable('field.storage.node.field_qr_logo')->delete();
+}
+

@@ -1,0 +1,8 @@
+
+custom_qr_generator.qr_admin:
+  title: 'QR Admin'
+  description: '...'
+  route_name: custom_qr_generator.qr_admin
+  parent: system.admin
+  weight: -10
+

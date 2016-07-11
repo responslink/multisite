@@ -1,0 +1,11 @@
+
+name: Custom QR Generator
+description: Generating QR images (TEST)
+package: Custom
+
+type: module
+core: 8.x
+
+libraries:
+  - custom_qr_generator/custom-qr-generator-style
+

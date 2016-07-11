@@ -1,0 +1,31 @@
+
+custom_qr_generator.custom_redirect:
+  path: '/qr/node/{nid}'
+  defaults:
+    _controller: '\Drupal\custom_qr_generator\Controller\RedirectController::custom_redirect'
+    _title: 'Redirect'
+  requirements:
+    _permission: 'access content'
+    nid: ^[0-9]+ # accept only numbers
+  options:
+    no_cache: TRUE
+
+
+custom_qr_generator.qr_admin:
+  path: '/admin/qr-admin'
+  defaults:
+    _controller: '\Drupal\custom_qr_generator\Controller\QRAdminController::content'
+    _title: 'QR Admin'
+  requirements:
+    _permission: 'access content'
+    _role: 'editor+administrator'
+
+
+custom_qr_generator.qr_img_download:
+  path: '/qr-img-download/{fid}'
+  defaults:
+    _controller: '\Drupal\custom_qr_generator\Controller\QRDownloadController::download'
+    _title: 'QR Image Download'
+  requirements:
+    _permission: 'access content'
+    nid: ^[0-9]+ # accept only numbers

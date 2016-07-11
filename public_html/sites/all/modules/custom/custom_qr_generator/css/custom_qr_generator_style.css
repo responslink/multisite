@@ -1,0 +1,21 @@
+
+.toolbar-icon-custom-qr-generator-qr-admin:before {
+	background-image: url("../icons/787878/view-qr.svg");
+}
+
+.toolbar-icon-custom-qr-generator-qr-admin.is-active:before {
+	background-image: url("../icons/000000/view-qr.svg");
+}
+
+.cqrs-status-red {
+	color:#ff0000;
+}
+
+.cqrs-status-green {
+	color:#00aa00;
+}
+
+form.node-qr-node-edit-form #edit-field-qr-logo-wrapper {
+	display:none !important;
+}
+

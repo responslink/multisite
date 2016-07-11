@@ -1,0 +1,28 @@
+
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_custom_url
+    - node.type.qr_node
+  module:
+    - node
+id: node.qr_node.field_custom_url
+field_name: field_custom_url
+entity_type: node
+label: 'Custom URL'
+required: true
+type: string
+bundle: qr_node
+settings:
+  max_length: 255
+  is_ascii: false
+  case_sensitive: false
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
+field_type: string
+
