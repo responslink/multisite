@@ -1,58 +1,48 @@
 <?php
 
-use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\node\Entity\Node;
-use Drupal\file\Entity\File;
+use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\UrlHelper;
-
-use Symfony\Component\HttpFoundation\RedirectResponse;
-
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\file\Entity\File;
+use Drupal\node\Entity\Node;
+use Drupal\user\Entity\User;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\BadResponseException;
-
+use GuzzleHttp\Exception\RequestException;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 function custom_qr_generator_node_view_alter(array &$build, EntityInterface $node, EntityViewDisplayInterface $display) {
 	if ($node->getType() == 'qr_node') {
-
 		// Hide "Custom URL" field
 		$build['field_custom_url'] = array(
 			'#type' => 'markup',
 			'#markup' => '',
 		);
-
 		// Hide "QR Image" field's title
 		$build['field_qr_img']['#title'] = '';
 	}
 }
 
-
 function custom_qr_generator_form_node_form_alter(&$form, FormStateInterface $form_state) {
 	$node = $form_state->getFormObject()->getEntity();
-
 	if ($node->getType() == 'qr_node') {
 		// Hide the "QR Image" field
 		$form['field_qr_img'] = array('#markup' => '');
 	}
-
 	$form['#validate'][] = 'custom_qr_generator_node_validate';
 }
 
-
 function custom_qr_generator_node_validate(&$form, FormStateInterface $form_state) {
 	$url = $form_state->getValue('field_custom_url');
-
 	if (UrlHelper::isValid($url[0]['value'], true) === false) {
 		$form_state->setErrorByName('field_custom_url', t('URL is incorrect.'));
 	}
 }
 
-
 function custom_qr_generator_node_insert($node) {
 	if ($node->getType() == 'qr_node') {
-
 		// Add node into stats table
 		db_insert('custom_qr_generator_stats')
 			->fields(array('qrnid' => $node->id()))->execute();
@@ -126,7 +116,9 @@ function custom_qr_generator_cron() {
 	$query->fields('cqrs', array('url_status', 'qrnid'));
 	$query->fields('fcu', array('field_custom_url_value'));
 	$data = $query->execute()->fetchAll();
+  $statuses = array();
 
+  // Collect statuses and ID's
 	foreach ($data as $d) {
 		try {
 			$res = $client->request('GET', $d->field_custom_url_value);
@@ -137,8 +129,11 @@ function custom_qr_generator_cron() {
 			$status = '?'; // Some other error
 		}
 
-		_custom_qr_generator_set_status($d->qrnid, $status);
+    _custom_qr_generator_set_status($d->qrnid, $status);
+    $statuses[$d->qrnid] = $status;
 	}
+
+  _custom_qr_generator_send_status_mail($statuses);
 }
 
 
@@ -151,6 +146,38 @@ function _custom_qr_generator_set_status($id, $status_code) {
 		->condition('qrnid', $id)
 		->fields(array('url_status' => $status))
 		->execute();
+}
+
+function _custom_qr_generator_send_status_mail($statuses) {
+  $failed = array();
+  $to = '';
+
+  $ids = \Drupal::entityQuery('user')
+  ->condition('status', 1)
+  ->condition('roles', 'administrator')
+  ->execute();
+  $users = User::loadMultiple($ids);
+
+  foreach ($users as $user) {
+    $to .= $user->getEmail() . ',';
+  }
+
+  foreach ($statuses as $id => $status) {
+    $status_text = ($status == '200') ? 'OK' : 'FAILED';
+    if ($status_text == 'FAILED') {
+      $node = Node::load($id);
+      $failed[$id] = $node->getTitle();
+    }
+  }
+
+  if (!empty($failed)) {
+    $mailManager = \Drupal::service('plugin.manager.mail');
+    $module = 'custom_qr_generator';
+    $key = 'qr_code_status_failed';
+    $langcode = \Drupal::currentUser()->getPreferredLangcode();
+    $params['failed'] = $failed;
+    $mailManager->mail($module, $key, $to, $langcode, $params, $send = FALSE);
+  }
 }
 
 
@@ -246,3 +273,25 @@ function _custom_qr_generator_frontpage_redirect() {
 	}
 }
 
+/**
+ * Implements hook_mail().
+ */
+function custom_qr_generator_mail($key, &$message, $params) {
+  $options = array(
+    'langcode' => $message['langcode'],
+  );
+
+  switch ($key) {
+  case 'qr_code_status_failed':
+    $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed; delsp=yes';
+    $message['subject'] = t('Some QR code failed validation');
+    $message['body'][] = SafeMarkup::checkPlain(t('The following QR codes failed:<br />'));
+    $url = \Drupal::request()->getHost();;
+    $message['body'][] = SafeMarkup::checkPlain('<ul>');
+    foreach ($params['failed'] as $id => $title) {
+      $message['body'][] = SafeMarkup::checkPlain('<li><a href="http://' . $url . '/node/' . $id . '/edit' . '">' . $title . "</a></li>");
+    }
+    $message['body'][] = SafeMarkup::checkPlain('</ul>');
+    break;
+  }
+}
