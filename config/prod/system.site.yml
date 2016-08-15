@@ -1,0 +1,14 @@
+uuid: 248be369-1115-4d7d-adf2-9d798180f989
+name: Bellcom
+mail: drupal@bellcom.dk
+slogan: ''
+page:
+  403: ''
+  404: ''
+  front: /user/login
+admin_compact_mode: false
+weight_select_max: 100
+langcode: da
+default_langcode: da
+_core:
+  default_config_hash: yXadRE77Va-G6dxhd2kPYapAvbnSvTF6hO4oXiOEynI

@@ -1,0 +1,23 @@
+uuid: a360d637-0151-4da3-a2d7-cd41c6f4d24c
+langcode: en
+status: true
+dependencies: {  }
+id: editor
+label: Editor
+weight: -8
+is_admin: null
+permissions:
+  - 'create article content'
+  - 'delete any article content'
+  - 'delete own article content'
+  - 'edit any article content'
+  - 'edit own article content'
+  - 'create page content'
+  - 'delete any page content'
+  - 'delete own page content'
+  - 'edit any page content'
+  - 'edit own page content'
+  - 'delete any qr_node content'
+  - 'delete own qr_node content'
+  - 'access administration pages'
+  - 'access toolbar'

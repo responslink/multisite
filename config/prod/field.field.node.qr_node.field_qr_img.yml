@@ -1,0 +1,40 @@
+uuid: bea83853-c058-4bf8-8ae2-ba1d48f207e2
+langcode: da
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_qr_img
+    - node.type.qr_node
+  module:
+    - image
+_core:
+  default_config_hash: XGWqaDo3PfRYz4k9oeDt0wW_hPpEN2QKWG5TtUjOQVc
+id: node.qr_node.field_qr_img
+field_name: field_qr_img
+entity_type: node
+bundle: qr_node
+label: 'QR Image'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  default_image:
+    uuid: ''
+    alt: ''
+    title: ''
+    width: null
+    height: null
+  file_extensions: 'png gif jpg jpeg'
+  alt_field: true
+  alt_field_required: true
+  title_field: false
+  title_field_required: false
+  max_resolution: ''
+  min_resolution: ''
+  file_directory: '[date:custom:Y]-[date:custom:m]'
+  max_filesize: ''
+  handler: 'default:file'
+  handler_settings: {  }
+field_type: image

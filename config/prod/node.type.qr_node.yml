@@ -1,0 +1,23 @@
+uuid: 840266a4-ad18-4f42-b7d7-d2653834a1e4
+langcode: da
+status: true
+dependencies:
+  enforced:
+    module:
+      - custom_qr_generator
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus:
+      - main
+    parent: 'main:'
+_core:
+  default_config_hash: 96LnYcXQ-NtZEgIJgCmHB9bNR6C6WY18NKKEd3iKT1M
+name: 'QR Node'
+type: qr_node
+description: ...
+help: ''
+new_revision: false
+preview_mode: 1
+display_submitted: true

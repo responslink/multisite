@@ -1,0 +1,30 @@
+uuid: 1f150834-c097-48f2-9980-d9a02a8fc883
+langcode: da
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.qr_node.field_background_color
+    - field.field.node.qr_node.field_incoming_url
+    - field.field.node.qr_node.field_outgoing_url
+    - field.field.node.qr_node.field_qr_img
+    - field.field.node.qr_node.field_qr_logo
+    - node.type.qr_node
+  module:
+    - user
+_core:
+  default_config_hash: 8h43BFdhhdZp4vS9CsLk0dX61Wi6NtDKbFdm6QXLHWo
+id: node.qr_node.teaser
+targetEntityType: node
+bundle: qr_node
+mode: teaser
+content:
+  links:
+    weight: 100
+hidden:
+  field_background_color: true
+  field_incoming_url: true
+  field_outgoing_url: true
+  field_qr_img: true
+  field_qr_logo: true
+  langcode: true
