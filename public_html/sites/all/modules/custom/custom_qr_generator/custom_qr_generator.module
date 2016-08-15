@@ -2,9 +2,11 @@
 
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Utility\UrlHelper;
+use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\node\Entity\Node;
 use Drupal\user\Entity\User;
@@ -35,10 +37,39 @@ function custom_qr_generator_form_node_form_alter(&$form, FormStateInterface $fo
 }
 
 function custom_qr_generator_node_validate(&$form, FormStateInterface $form_state) {
-	$url = $form_state->getValue('field_custom_url');
-	if (UrlHelper::isValid($url[0]['value'], true) === false) {
-		$form_state->setErrorByName('field_custom_url', t('URL is incorrect.'));
+	$outgoing_url = $form_state->getValue('field_outgoing_url');
+  $incoming_url = $form_state->getValue('field_incoming_url');
+
+  // Check if the incoming URL is unique
+  $query = \Drupal::entityQuery('node')
+  ->condition('status', 1)
+  ->condition('type', 'qr_node')
+  ->condition('field_incoming_url.value', $incoming_url[0]['value'], '=');
+
+  $result = $query->execute();
+
+  if (count($result) > 0) {
+    $form_state->setErrorByName('field_incoming_url', t('The incoming URL is not unique.'));
+  }
+
+	if (UrlHelper::isValid($outgoing_url[0]['value'], true) === false) {
+		$form_state->setErrorByName('field_outgoing_url', t('URL is incorrect.'));
 	}
+}
+
+/**
+ * Implments hook_node_presave().
+ */
+function custom_qr_generator_node_presave($node) {
+  if ($node->getType() == 'qr_node') {
+    if (empty($node->get('field_incoming_url')->getValue())) {
+      $url = str_replace(' ', '-', $node->getTitle());
+      $url = str_replace(array('æ', 'ø', 'å', ' '), array('ae', 'oe', 'aa', '-'), $node->getTitle());
+      $url = preg_replace('/[^A-Za-z0-9\-]/', '', $url);
+      $url = strtolower($url);
+      $node->set('field_incoming_url', $url);
+    }
+  }
 }
 
 function custom_qr_generator_node_insert($node) {
@@ -47,9 +78,17 @@ function custom_qr_generator_node_insert($node) {
 		db_insert('custom_qr_generator_stats')
 			->fields(array('qrnid' => $node->id()))->execute();
 
-		$custom_url = sprintf('%s/qr/node/%s'
+    if (empty($node->get('field_incoming_url')->getValue())) {
+      $url = str_replace(' ', '-', $node->getTitle());
+      $url = str_replace(array('æ', 'ø', 'å', ' '), array('ae', 'oe', 'aa', '-'), $node->getTitle());
+      $url = preg_replace('/[^A-Za-z0-9\-]/', '', $url);
+      $url = strtolower($url);
+      $node->set('field_incoming_url', $url);
+    }
+
+		$custom_url = sprintf('%s/qr/%s'
 			, $GLOBALS['base_url']
-			, $node->id()
+			, $node->get('field_incoming_url')->getValue()
 		);
 
 		$img_dir = sprintf('public://%s', date("Y-m"));
@@ -293,5 +332,34 @@ function custom_qr_generator_mail($key, &$message, $params) {
     }
     $message['body'][] = SafeMarkup::checkPlain('</ul>');
     break;
+  }
+}
+
+/**
+ * Update new summary and description fields from body values.
+ */
+function custom_qr_generator_update_8001(&$sandbox) {
+  $bundles = ['qr_node'];
+  $incoming_url = 'field_incoming_url';
+  $outgoing_url = 'field_outgoing_url';
+  $custom_url = 'field_custom_url';
+
+  $storage = Drupal::entityManager()->getStorage('node');
+  $records = Database::getConnection()->select('node', 'n')
+    ->fields('n', array('nid'))
+    ->condition('type', $bundles, 'IN')
+    ->orderBy('nid', 'ASC')
+    ->execute();
+  foreach ($records as $record) {
+    $node = $storage->load($record->nid);
+    $custom_url_value = $node->get($custom_url)->getValue();
+
+    if (!empty($custom_url_value)) {
+      $node->set($outgoing_url, $custom_url_value);
+      $node->set($custom_url, NULL);
+    }
+
+    // Force a node save even if there are no changes to force the pre_save hook to be executed.
+    $node->save();
   }
 }

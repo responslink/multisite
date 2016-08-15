@@ -1,12 +1,11 @@
 
 custom_qr_generator.custom_redirect:
-  path: '/qr/node/{nid}'
+  path: '/qr/{incoming_url}'
   defaults:
     _controller: '\Drupal\custom_qr_generator\Controller\RedirectController::custom_redirect'
     _title: 'Redirect'
   requirements:
     _permission: 'access content'
-    nid: ^[0-9]+ # accept only numbers
   options:
     no_cache: TRUE
 

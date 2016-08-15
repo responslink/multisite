@@ -1,0 +1,22 @@
+uuid: 5757cc05-aaa2-4629-aff3-434f59cb4088
+langcode: da
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_background_color
+    - node.type.qr_node
+  module:
+    - color_field
+id: node.qr_node.field_background_color
+field_name: field_background_color
+entity_type: node
+bundle: qr_node
+label: 'Background color'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  opacity: 1
+field_type: color_field_type

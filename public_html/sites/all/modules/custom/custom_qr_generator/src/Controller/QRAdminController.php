@@ -58,7 +58,7 @@ class QRAdminController extends ControllerBase {
 			),
 			array(
 				'data' => $this->t('URL'),
-				'field' => 'ncu.field_custom_url_value',
+				'field' => 'ncu.field_outgoing_url_value',
 			),
 			array(
 				'data' => $this->t('Statistics'),
@@ -80,17 +80,17 @@ class QRAdminController extends ControllerBase {
 			->extend('\Drupal\Core\Database\Query\TableSortExtender');
 
 		$query->join('node_field_data', 'nfd', 'nfd.nid = n.nid');
-		$query->join('node__field_custom_url', 'ncu', 'ncu.entity_id = n.nid');
+		$query->join('node__field_outgoing_url', 'ncu', 'ncu.entity_id = n.nid');
 		$query->join('custom_qr_generator_stats', 'cqrs', 'cqrs.qrnid = n.nid');
 		$query->fields('nfd', array('nid', 'type', 'title'));
-		$query->fields('ncu', array('field_custom_url_value'));
+		$query->fields('ncu', array('field_outgoing_url_value'));
 		$query->fields('cqrs', array('url_redirections', 'url_status'));
 		$query->condition('nfd.type', 'qr_node', '=');
 
 		$node_storage = $query->limit(20)->orderByHeader($header)->execute();
 
 		foreach ($node_storage as $ns) {
-			$custom_url = $ns->field_custom_url_value;
+			$custom_url = $ns->field_outgoing_url_value;
 
 			if (UrlHelper::isValid($custom_url, true)) {
 				$custom_url = \Drupal::l($custom_url, Url::fromUri($custom_url));

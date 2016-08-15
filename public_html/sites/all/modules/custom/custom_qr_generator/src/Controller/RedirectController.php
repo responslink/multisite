@@ -11,7 +11,16 @@ use Symfony\Component\HttpFoundation\Request;
 class RedirectController extends ControllerBase {
 	public function custom_redirect(Request $request) {
 
-		$nid = $request->get('nid');
+		$incoming_url = $request->get('incoming_url');
+
+    $query = \Drupal::entityQuery('node')
+    ->condition('status', 1)
+    ->condition('type', 'qr_node')
+    ->condition('field_incoming_url.value', $incoming_url, '=');
+
+    $result = $query->execute();
+    $nid = array_values($result)[0];
+
 		$node_url = $GLOBALS['base_url'] . '/node/' . $nid;
 		$node = \Drupal\node\Entity\Node::load($nid);
 
@@ -22,7 +31,7 @@ class RedirectController extends ControllerBase {
 		$node_arr = $node->toArray();
 
 		if ($node_arr['type'][0]['target_id'] == 'qr_node') {
-			$addr = $node_arr['field_custom_url'][0]['value'];
+			$addr = $node_arr['field_outgoing_url'][0]['value'];
 
 			$qr_stats_items = db_select('custom_qr_generator_stats', 'cqrs')
 				->fields('cqrs')
@@ -60,4 +69,3 @@ class RedirectController extends ControllerBase {
 			->execute();
 	}
 }
-

@@ -1,0 +1,19 @@
+uuid: ec00bcff-c9cb-47be-b086-15ad346e2936
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_outgoing_url
+    - node.type.qr_node
+id: node.qr_node.field_outgoing_url
+field_name: field_outgoing_url
+entity_type: node
+bundle: qr_node
+label: 'Outgoing URL'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
