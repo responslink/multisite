@@ -53,7 +53,7 @@ function custom_qr_generator_node_insert($node) {
 		);
 
 		$img_dir = sprintf('public://%s', date("Y-m"));
-		$dest_uri = sprintf('%s/%s.png', $img_dir, sha1($custom_url));
+		$dest_uri = sprintf('%s/%s.png', $img_dir, $node->getTitle());
 
 		file_prepare_directory($img_dir, FILE_CREATE_DIRECTORY);
 
