@@ -6,10 +6,12 @@ dependencies:
     - field.field.node.qr_node.field_background_color
     - field.field.node.qr_node.field_incoming_url
     - field.field.node.qr_node.field_outgoing_url
+    - field.field.node.qr_node.field_qr_address
     - field.field.node.qr_node.field_qr_img
     - field.field.node.qr_node.field_qr_logo
     - node.type.qr_node
   module:
+    - address
     - color_field
     - image
     - user
@@ -42,6 +44,12 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     type: string
+  field_qr_address:
+    weight: 106
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: address_default
   field_qr_img:
     weight: 101
     label: above

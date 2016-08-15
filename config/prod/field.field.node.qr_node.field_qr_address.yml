@@ -1,0 +1,34 @@
+uuid: 4f77ab51-1fbf-4373-9e40-12f60c074421
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_qr_address
+    - node.type.qr_node
+  module:
+    - address
+id: node.qr_node.field_qr_address
+field_name: field_qr_address
+entity_type: node
+bundle: qr_node
+label: 'QR Address'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  available_countries:
+    DK: DK
+  fields:
+    postalCode: postalCode
+    addressLine1: addressLine1
+    organization: organization
+    administrativeArea: '0'
+    locality: '0'
+    dependentLocality: '0'
+    sortingCode: '0'
+    addressLine2: '0'
+    recipient: '0'
+  langcode_override: da
+field_type: address

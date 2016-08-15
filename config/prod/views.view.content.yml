@@ -184,7 +184,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
-          label: 'Content Type'
+          label: Type
           exclude: false
           alter:
             alter_text: false
@@ -312,7 +312,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
-          label: Operations
+          label: Handlinger
           exclude: false
           alter:
             alter_text: false

@@ -6,11 +6,13 @@ dependencies:
     - field.field.node.qr_node.field_background_color
     - field.field.node.qr_node.field_incoming_url
     - field.field.node.qr_node.field_outgoing_url
+    - field.field.node.qr_node.field_qr_address
     - field.field.node.qr_node.field_qr_img
     - field.field.node.qr_node.field_qr_logo
     - image.style.thumbnail
     - node.type.qr_node
   module:
+    - address
     - color_field
     - image
     - path
@@ -47,6 +49,12 @@ content:
       placeholder: ''
     third_party_settings: {  }
     type: string_textfield
+  field_qr_address:
+    weight: 36
+    settings:
+      default_country: null
+    third_party_settings: {  }
+    type: address_default
   field_qr_img:
     weight: 31
     settings:
