@@ -1,0 +1,65 @@
+uuid: f8268716-afc6-4bf3-93df-af6b0e734496
+langcode: da
+status: true
+dependencies:
+  config:
+    - field.field.node.qr_node.field_background_color
+    - field.field.node.qr_node.field_incoming_url
+    - field.field.node.qr_node.field_outgoing_url
+    - field.field.node.qr_node.field_qr_address
+    - field.field.node.qr_node.field_qr_img
+    - field.field.node.qr_node.field_qr_logo
+    - node.type.qr_node
+  module:
+    - address
+    - color_field
+    - image
+    - user
+_core:
+  default_config_hash: rgwqDGOLLsPp5TcrqJ6Xwd4lw-KqDb1siwg8KukEPDw
+id: node.qr_node.default
+targetEntityType: node
+bundle: qr_node
+mode: default
+content:
+  field_background_color:
+    weight: 103
+    label: above
+    settings:
+      format: hex
+      opacity: true
+    third_party_settings: {  }
+    type: color_field_formatter_text
+  field_incoming_url:
+    weight: 104
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+  field_outgoing_url:
+    weight: 105
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+  field_qr_address:
+    weight: 106
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: address_default
+  field_qr_img:
+    weight: 101
+    label: above
+    settings:
+      image_style: ''
+      image_link: ''
+    third_party_settings: {  }
+    type: image
+  links:
+    weight: 100
+hidden:
+  field_qr_logo: true
+  langcode: true

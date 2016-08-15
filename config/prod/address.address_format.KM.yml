@@ -1,0 +1,20 @@
+uuid: 3d4eb277-7424-49dd-9935-69c207f788b3
+langcode: en
+status: true
+dependencies: {  }
+countryCode: KM
+format: "%recipient\n%organization\n%addressLine1\n%addressLine2\n%locality"
+requiredFields:
+  - recipient
+  - addressLine1
+  - locality
+uppercaseFields:
+  - addressLine1
+  - addressLine2
+  - locality
+administrativeAreaType: null
+localityType: city
+dependentLocalityType: null
+postalCodeType: null
+postalCodePattern: null
+postalCodePrefix: null

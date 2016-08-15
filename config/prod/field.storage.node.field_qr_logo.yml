@@ -1,0 +1,32 @@
+uuid: c1855572-554d-4bb2-9fc0-a4700410df1e
+langcode: da
+status: true
+dependencies:
+  module:
+    - file
+    - image
+    - node
+_core:
+  default_config_hash: lY8IdJ2VRzMCbMYAVVAm0dSp0MNDClCdqJyyAN1bW2U
+id: node.field_qr_logo
+field_name: field_qr_logo
+entity_type: node
+type: image
+settings:
+  uri_scheme: public
+  default_image:
+    uuid: ''
+    alt: ''
+    title: ''
+    width: null
+    height: null
+  target_type: file
+  display_field: false
+  display_default: false
+module: image
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
