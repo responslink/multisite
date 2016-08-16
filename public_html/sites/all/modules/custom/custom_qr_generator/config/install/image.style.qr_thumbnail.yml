@@ -1,0 +1,14 @@
+uuid: 2e95053d-df7a-4a30-81e9-3f0428f3f28f
+langcode: en
+status: true
+dependencies: {  }
+name: qr_thumbnail
+label: 'QR Thumbnail'
+effects:
+  1b3651b3-cd9b-42e0-93b8-0ef8bdd78ce5:
+    uuid: 1b3651b3-cd9b-42e0-93b8-0ef8bdd78ce5
+    id: image_scale_and_crop
+    weight: 1
+    data:
+      width: 80
+      height: 80

@@ -7,6 +7,7 @@ dependencies:
     - field.field.node.qr_node.field_incoming_url
     - field.field.node.qr_node.field_outgoing_url
     - field.field.node.qr_node.field_qr_address
+    - field.field.node.qr_node.field_qr_category
     - field.field.node.qr_node.field_qr_img
     - field.field.node.qr_node.field_qr_logo
     - image.style.thumbnail
@@ -55,6 +56,14 @@ content:
       default_country: null
     third_party_settings: {  }
     type: address_default
+  field_qr_category:
+    weight: 37
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete
   field_qr_img:
     weight: 31
     settings:

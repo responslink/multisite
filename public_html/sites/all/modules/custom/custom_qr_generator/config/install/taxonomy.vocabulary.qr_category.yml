@@ -1,0 +1,9 @@
+uuid: ac42e316-58d5-4c75-af67-16cc63e969fd
+langcode: en
+status: true
+dependencies: {  }
+name: 'QR Category'
+vid: qr_category
+description: ''
+hierarchy: 0
+weight: 0
