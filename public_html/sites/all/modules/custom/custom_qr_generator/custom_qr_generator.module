@@ -48,13 +48,9 @@ function custom_qr_generator_node_validate(&$form, FormStateInterface $form_stat
 
   $result = $query->execute();
 
-  if (count($result) > 0) {
+  if (count($result) > 0 && !empty($incoming_url[0]['value'])) {
     $form_state->setErrorByName('field_incoming_url', t('The incoming URL is not unique.'));
   }
-
-	if (UrlHelper::isValid($outgoing_url[0]['value'], true) === false) {
-		$form_state->setErrorByName('field_outgoing_url', t('URL is incorrect.'));
-	}
 }
 
 /**
