@@ -147,16 +147,16 @@ function custom_qr_generator_cron() {
 	$client = new GuzzleHttp\Client();
 
 	$query = db_select('custom_qr_generator_stats', 'cqrs');
-	$query->join('node__field_custom_url', 'fcu', 'cqrs.qrnid = fcu.entity_id');
+	$query->join('node__field_outgoing_url', 'fcu', 'cqrs.qrnid = fcu.entity_id');
 	$query->fields('cqrs', array('url_status', 'qrnid'));
-	$query->fields('fcu', array('field_custom_url_value'));
+	$query->fields('fcu', array('field_outgoing_url_value'));
 	$data = $query->execute()->fetchAll();
   $statuses = array();
 
   // Collect statuses and ID's
 	foreach ($data as $d) {
 		try {
-			$res = $client->request('GET', $d->field_custom_url_value);
+			$res = $client->request('GET', $d->field_outgoing_url_value);
 			$status = $res->getStatusCode();
 		} catch (BadResponseException $e) {
 			$status = $e->getResponse()->getStatusCode();
