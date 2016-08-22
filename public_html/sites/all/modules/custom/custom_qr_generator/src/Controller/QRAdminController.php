@@ -7,6 +7,7 @@ use Drupal\Core\Url;
 use Drupal\Core\Database\Connection;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\file\Entity\File;
+use Drupal\taxonomy\Entity\Term;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 
@@ -57,9 +58,17 @@ class QRAdminController extends ControllerBase {
 				'field' => 'nfd.title',
 			),
 			array(
-				'data' => $this->t('URL'),
+				'data' => $this->t('URL (OUT)'),
 				'field' => 'ncu.field_outgoing_url_value',
 			),
+      array(
+				'data' => $this->t('URL (IN)'),
+				'field' => 'nci.field_incoming_url_value',
+			),
+      array(
+        'data' => $this->t('Category'),
+        'field' => 'ncc.field_qr_category_target_id',
+      ),
 			array(
 				'data' => $this->t('Statistics'),
 				'field' => 'cqrs.url_redirections',
@@ -81,20 +90,40 @@ class QRAdminController extends ControllerBase {
 
 		$query->join('node_field_data', 'nfd', 'nfd.nid = n.nid');
 		$query->join('node__field_outgoing_url', 'ncu', 'ncu.entity_id = n.nid');
+    $query->join('node__field_incoming_url', 'nci', 'nci.entity_id = n.nid');
+    $query->join('node__field_qr_category', 'ncc', 'ncc.entity_id = n.nid');
 		$query->join('custom_qr_generator_stats', 'cqrs', 'cqrs.qrnid = n.nid');
+
 		$query->fields('nfd', array('nid', 'type', 'title'));
 		$query->fields('ncu', array('field_outgoing_url_value'));
+    $query->fields('nci', array('field_incoming_url_value'));
+    $query->fields('ncc', array('field_qr_category_target_id'));
 		$query->fields('cqrs', array('url_redirections', 'url_status'));
 		$query->condition('nfd.type', 'qr_node', '=');
 
 		$node_storage = $query->limit(20)->orderByHeader($header)->execute();
 
 		foreach ($node_storage as $ns) {
-			$custom_url = $ns->field_outgoing_url_value;
+			$outgoing_url = $ns->field_outgoing_url_value;
+      $incoming_url = $GLOBALS['base_url'] . $GLOBALS['base_path'] . 'qr/' . $ns->field_incoming_url_value;
+      $category_url = $GLOBALS['base_url'] . $GLOBALS['base_path'] . 'taxonomy/term/' . $ns->field_qr_category_target_id;
 
-			if (UrlHelper::isValid($custom_url, true)) {
-				$custom_url = \Drupal::l($custom_url, Url::fromUri($custom_url));
+			if (UrlHelper::isValid($outgoing_url, true)) {
+				$outgoing_url = \Drupal::l($outgoing_url, Url::fromUri($outgoing_url));
 			}
+
+      if (!empty($incoming_url)) {
+				$incoming_url = \Drupal::l($ns->field_incoming_url_value, Url::fromUri($incoming_url));
+			} else {
+        $incoming_url = print $this->t('N/A');
+      }
+
+      if (!empty($category_url)) {
+        $entity = Term::load($ns->field_qr_category_target_id);
+        $category_url = \Drupal::l($entity->label(), Url::fromUri($category_url));
+      } else {
+        $category_url = print $this->t('N/A');
+      }
 
 			$edit_link_url = sprintf('%s/node/%s/edit?destination=%sadmin/qr-admin'
 				, $GLOBALS['base_url'], $ns->nid, $GLOBALS['base_path']
@@ -110,7 +139,9 @@ class QRAdminController extends ControllerBase {
 			$rows[] = array(
 				'data' => array(
 					$ns->title,
-					$custom_url,
+					$outgoing_url,
+          $incoming_url,
+          $category_url,
 					$ns->url_redirections,
 					$this->_styledStatus($ns->url_status),
 					$this->_downloadLink($ns->nid),
@@ -176,4 +207,3 @@ class QRAdminController extends ControllerBase {
 		);
 	}
 }
-
